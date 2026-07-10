@@ -1,88 +1,21 @@
-# Welcome to React Router!
-
-A modern, production-ready template for building full-stack React applications using React Router.
-
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
-
-## Features
-
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
-
-## Getting Started
-
-### Installation
-
-Install the dependencies:
-
-```bash
-npm install
-```
-
-### Development
-
-Start the development server with HMR:
-
-```bash
-npm run dev
-```
-
-Your application will be available at `http://localhost:5173`.
-
-## Building for Production
-
-Create a production build:
-
-```bash
-npm run build
-```
-
-## Deployment
-
-### Docker Deployment
-
-To build and run using Docker:
-
-```bash
-docker build -t my-app .
-
-# Run the container
-docker run -p 3000:3000 my-app
-```
-
-The containerized application can be deployed to any platform that supports Docker, including:
-
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
-```
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
-
----
-
-Built with ❤️ using React Router.
 # Auth Practice Playground
+___
+FastAPI + React Router * Postgres playground for testing API security best practices
+___
+## Auth Security Practices
+__*Authentication Methods & Best Practices*__  
+**API Keys**: Used for internal servers to authenticate each other  
+**Oauth2**: Utilize 3rd party authentication such as Google's authentication  
+**JWT**: Used for stateless authentication  
+**MFA**: Using more than one method of authentication
+
+__*Data at rest Best Practices*__  
+**Hash Passwords**: Hash and salt passwords before storing in database
+
+__*API Auth Security Best Practices*__  
+**Rate Limit**: Limit number of requests to endpoints
+**Account Lockout**: Lock accounts after multiple failed logins
+**Permission Controls**: Implement proper account permissions: Admin, User, Guest, etc
+
+__*Insecure*__  
+**Basic Auth**: It is no longer enough to protect accounts with basic username and password
