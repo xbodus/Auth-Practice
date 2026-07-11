@@ -2,6 +2,13 @@
 .venv
 venv
 
+# Environment
+.env
+env
+
+# Docker
+docker/
+
 # Pycharm
 .idea
 
@@ -10,4 +17,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.pyc
+
+# Planning
+plan.md
 
