@@ -1,0 +1,31 @@
+site_name: Authentication Practice Docs
+
+nav:
+  - Home: index.md
+  - Schema:
+      - Accounts: schema/accounts.md
+      - Users: schema/users.md
+      - Functions: schema/functions.md
+  - API: api/api.md
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs       # top-level sections as tabs, not just sidebar
+    - navigation.sections   # expand sidebar sections by default
+    - toc.integrate         # merge page table-of-contents into the sidebar
+    - search.suggest        # search autocomplete
+    - search.highlight      # highlight matched terms in results
+    - content.code.copy     # copy button on code blocks
+
+extra_css:
+  - stylesheets/extra.css
