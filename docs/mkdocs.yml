@@ -5,6 +5,8 @@ nav:
   - Schema:
       - Accounts: schema/accounts.md
       - Users: schema/users.md
+      - Password Resets: schema/password_resets.md
+      - Email Verifications: schema/email_verifications.md
       - Functions: schema/functions.md
   - API: api/api.md
 
