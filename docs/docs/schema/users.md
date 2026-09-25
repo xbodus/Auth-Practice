@@ -2,6 +2,8 @@
 The users table serves to store individual user account information. User accounts will be the main 
 object to determine authentication to and authorizations within an [account](/schema/accounts).
 
+---
+
 ## Schema
 ```sql
 CREATE TABLE users (
@@ -25,6 +27,9 @@ CREATE TABLE users (
     active        BOOLEAN DEFAULT TRUE NOT NULL
 );
 ```
+<br>
+
+---
 
 ## Security and API Permissions
 **Row Level Security (RLS)** is enabled and enforced on the users table to control what data a
@@ -32,8 +37,12 @@ user can access. Specifically scoping a user to only accessing and altering thei
 on their _*user_id*_ injected at time of operation using `SET LOCAL app.current_user_id`. User's 
 user_id will be attached to JWT token during their session.
 
-**RLS Policies**:  
-\- _*select_own_user*_: limits rows users are able to select to only rows that are attached to their _*user_id*_. 
+**API Permissions** are assigned to the database user the API uses to access the table to 
+minimize unnecessary privileges and data over exposure at the data layer.  
+
+### RLS Policies  
+#### select_own_user 
+Limits rows users are able to select to only rows that are attached to their _*user_id*_. 
 Users attempting to select from the users table without valid user_id will be blocked.
 ```sql
 CREATE POLICY select_own_user ON users FOR SELECT TO playground_user_1 
@@ -41,7 +50,9 @@ USING (
     user_id = current_setting('app.current_user_id', true)::integer
 )
 ```
-\- _*update_own_user*_: limits rows users are able to update to only rows that are attached to their _*user_id*_.
+
+#### update_own_user 
+Limits rows users are able to update to only rows that are attached to their _*user_id*_.
 Users attempting to update data within the users table without valid user_id will be blocked.
 ```sql
 CREATE POLICY update_own_user ON users FOR UPDATE TO playground_user_1 
@@ -53,24 +64,34 @@ WITH CHECK (
 )
 ```
 <br>
-**Permissions** are assigned to the database user the API uses to access the table to 
-minimize unnecessary privileges and over exposure at the data layer.  
 
-**API account permissions**:  
-\- SELECT Permissions: Authenticated users will be able to select most information that is relevant to 
-their user account. Excludes: user_id (attached to JWT after user authenticates) and password (only 
-exposed at time of login). See [get_user_for_login()](/schema/functions/#get_user_for_logintext) for 
-more information. 
+### API Permissions 
+#### SELECT Permissions 
 ```sql
 GRANT SELECT (first_name, last_name, username, email, email_verified, phone, dob, company, address, city, zipcode, country, created_at, updated_at, active) ON users TO playground_user_1
 ```
-\- UPDATE Permissions: Authenticated users will be able to update most information that is relevant to
-their user account. 
+Authenticated users will be able to select most information that is relevant to 
+their user account. Excludes: user_id (attached to JWT after user authenticates) and password (only 
+exposed at time of login). See [get_user_for_login()](/schema/functions/#get_user_for_logintext) for 
+more information. 
+
+#### UPDATE Permissions 
 ```sql
 GRANT UPDATE (first_name, last_name, username, password, email, phone, dob, company, address, city, zipcode, country) ON users TO playground_user_1
 ```
+Authenticated users will be able to update most information that is relevant to
+their user account. 
+
+#### INSERT Permissions
+INSERT operations will be standardized. The API will create inserts that contains values for first_name, last_name, username, email, phone, dob, company, address, city, zipcode, and country. As seen in the schema, none of these values are allowed to be `null`. Values will be automatically generated for user_id, email_verified, created_at, updated_at, and active at time of creation. Prior to INSERT operations, inputs will be validated and sanatized at the API level.
+
+#### DELETE Permissions
+DELETE operations will not be accessible through the API. Users looking to delete their accounts will have their active status updated to `false`, essentially soft-deactivating their accounts. Users who do not comeback after retention period will have their accounts permanently deleted by an automation script using a privileged database account. 
+
+---
 
 ## Triggers
+### trg_users_freeze_created_at
 ```sql
 CREATE TRIGGER trg_users_freeze_created_at
 BEFORE UPDATE
@@ -78,7 +99,19 @@ ON users
 FOR EACH ROW
 EXECUTE FUNCTION prevent_created_at_update()
 ```
+Entries entered into the users table will automatically have a create_at value assigned to the entry at time of creation. This value is intended for accurate historical records, and should not be modified via the API or any privileged database user. To ensure this, `trg_users_freeze_created_at` calls [prevent_created_at_update()](/schema/functions/#prevent_created_at_update) to revert any potential updates to the created_at value to the original value.
 
+### trg_update_email_verified
+```sql
+CREATE TRIGGER trg_update_email_verified
+BEFORE UPDATE
+ON users
+FOR EACH ROW
+EXECUTE FUNCTION reset_email_verified_on_change()
+```
+On account creation, new users will be asked to verify their email to verify account authenticity. Users who do not complete this task will not have privileged access to the application. This is a method to deter illegitimate signups, such as bot sign ups and avoid potential problems if account is locked out without a method to recover the account. Users will still be able to update their emails if necessary. Doing so would require re-verifying their email account causing `trg_update_email_verified` to fire and call [reset_email_verified_on_change()](/schema/functions/#reset_email_verified_on_change). 
+
+### trg_users_updated_at
 ```sql
 CREATE TRIGGER trg_users_updated_at
 BEFORE UPDATE
@@ -86,5 +119,13 @@ ON users
 FOR EACH ROW
 EXECUTE FUNCTION set_updated_at()
 ```
+On account creation, the updated_at value of the entry is synced with the created_at value. Every time the row is updated thereafter, `trg_users_updated_at` calls [set_updated_at()](/schema/functions/#set_updated_at) to sync the updated_at value to the current time of the update. 
+
+---
 
 ## Relationships
+### account_memberships
+
+### email_verifications
+
+### password_resets

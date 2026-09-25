@@ -207,6 +207,23 @@ $$;
 
 Function used by token tables ([password_resets](/schema/password_resets) and [email_verfications](/schema/email_verifications)) to prevent tampering of the expires_at value. Token verification relies on expires_at as an important parmemeter to determine the validity of a token. This value must be set at time of token creation and never altered thereafter, as it can lead to malicious use cases. To ensure proper preventative measures are in place, the API is not given permission to perform UPDATE operations on tables that include the expires_at column, and applicable tables have triggers that call on `prevent_expires_at_update()` to block privileged database accounts from updating the column while the trigger is active. 
 
+### reset_email_verified_on_change()
+```sql
+CREATE FUNCTION reset_email_verified_on_change()
+    RETURNS trigger
+    LANGUAGE plpgsql
+AS $$
+    BEGIN
+        IF
+            NEW.email IS DISTINCT FROM OLD.email THEN
+            NEW.email_verified = false;
+        END IF;
+        RETURN NEW;
+    END;
+$$
+```
+Function used by [users](/schema/users/#trg_update_email_verified) table to reset email verified value if users updates their email. Checks if new email is different from the old email. If so, the function resets the verified status to false until the user re-verifies their email using the email verification token sent to their new email at time of update. API uses RETURNING statement to verify change before starting verification workflow.
+
 
 ### prevent_last_admin_removal()
 ```sql
