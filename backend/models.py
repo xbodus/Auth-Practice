@@ -15,8 +15,8 @@ class Accounts(Base):
     __tablename__ = "accounts"
 
     account_id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
-    name = Column(String(100), nullable=False, unique=True)
-    type = Column(SQLEnum(AccountType), nullable=False)
+    name = Column(String(100), nullable=False)
+    type = Column(String(20), nullable=False) # AccountType PERSONAL or BUSINESS only via check constraint
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     active = Column(Boolean, server_default=true(), nullable=False)
@@ -32,7 +32,7 @@ class AccountMemberships(Base):
 
     account_id = Column(Integer, ForeignKey("accounts.account_id", ondelete="CASCADE"), primary_key=True)
     user_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), primary_key=True)
-    role_id = Column(Integer, ForeignKey("roles.role_id", ondelete="CASCADE"))
+    role_id = Column(Integer, ForeignKey("roles.role_id", ondelete="NO ACTION"))
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     accounts = relationship("Accounts", back_populates="memberships")
@@ -90,7 +90,7 @@ class EmailVerifications(Base):
 
     verification_id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
-    token = Column(String(100), nullable=False) # Stores token hash
+    token = Column(String(100), nullable=False, unique=True) # Stores token hash
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     expires_at = Column(
         DateTime(timezone=True),
@@ -108,7 +108,7 @@ class PasswordResets(Base):
 
     reset_id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
-    token = Column(String(100), nullable=False) # Stores token hash
+    token = Column(String(100), nullable=False, unique=True) # Stores token hash
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     expires_at = Column(
         DateTime(timezone=True),

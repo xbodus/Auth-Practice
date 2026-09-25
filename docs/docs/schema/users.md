@@ -42,18 +42,16 @@ minimize unnecessary privileges and data over exposure at the data layer.
 
 ### RLS Policies  
 #### select_own_user 
-Limits rows users are able to select to only rows that are attached to their _*user_id*_. 
-Users attempting to select from the users table without valid user_id will be blocked.
 ```sql
 CREATE POLICY select_own_user ON users FOR SELECT TO playground_user_1 
 USING (
     user_id = current_setting('app.current_user_id', true)::integer
 )
 ```
+Limits rows users are able to select to only rows that are attached to their _*user_id*_. 
+Users attempting to select from the users table without valid user_id will be blocked.
 
 #### update_own_user 
-Limits rows users are able to update to only rows that are attached to their _*user_id*_.
-Users attempting to update data within the users table without valid user_id will be blocked.
 ```sql
 CREATE POLICY update_own_user ON users FOR UPDATE TO playground_user_1 
 USING (
@@ -63,6 +61,9 @@ WITH CHECK (
     user_id = current_setting('app.current_user_id', true)::integer
 )
 ```
+Limits rows users are able to update to only rows that are attached to their _*user_id*_.
+Users attempting to update data within the users table without valid user_id will be blocked.
+
 <br>
 
 ### API Permissions 
@@ -70,23 +71,22 @@ WITH CHECK (
 ```sql
 GRANT SELECT (first_name, last_name, username, email, email_verified, phone, dob, company, address, city, zipcode, country, created_at, updated_at, active) ON users TO playground_user_1
 ```
-Authenticated users will be able to select most information that is relevant to 
-their user account. Excludes: user_id (attached to JWT after user authenticates) and password (only 
-exposed at time of login). See [get_user_for_login()](/schema/functions/#get_user_for_logintext) for 
-more information. 
+Authenticated users will be able to select most information that is relevant to their user account. Excludes: user_id (attached to JWT after user authenticates) and password (only exposed at time of login). See [get_user_for_login()](/schema/functions/#get_user_for_logintext) for more information. 
 
 #### UPDATE Permissions 
 ```sql
-GRANT UPDATE (first_name, last_name, username, password, email, phone, dob, company, address, city, zipcode, country) ON users TO playground_user_1
+GRANT UPDATE (first_name, last_name, username, password, email, phone, dob, company, address, city, zipcode, country, active) ON users TO playground_user_1
 ```
-Authenticated users will be able to update most information that is relevant to
-their user account. 
+Authenticated users will be able to update most information that is relevant to their user account. Users shouldn't be able to directly update fields that affect the user object identity, authorizations, or historical tracking, such as user_id, email_verified, created_at, and updated_at via the API.
 
 #### INSERT Permissions
-INSERT operations will be standardized. The API will create inserts that contains values for first_name, last_name, username, email, phone, dob, company, address, city, zipcode, and country. As seen in the schema, none of these values are allowed to be `null`. Values will be automatically generated for user_id, email_verified, created_at, updated_at, and active at time of creation. Prior to INSERT operations, inputs will be validated and sanatized at the API level.
+```sql
+GRANT INSERT (first_name, last_name, username, password, email, phone, dob, address, city, state, zipcode, country, company) ON users TO playground_user_1
+```
+INSERT operations will be standardized. Users will be able to create entries via the API that contain values for first_name, last_name, username, email, phone, dob, company, address, city, zipcode, and country. As seen in the schema, none of these values are allowed to be `null`. Values will be automatically generated via the default values for user_id, email_verified, created_at, updated_at, and active at time of creation. Prior to INSERT operations, inputs will be validated and sanatized at the API level.
 
 #### DELETE Permissions
-DELETE operations will not be accessible through the API. Users looking to delete their accounts will have their active status updated to `false`, essentially soft-deactivating their accounts. Users who do not comeback after retention period will have their accounts permanently deleted by an automation script using a privileged database account. 
+DELETE operations on the users table will not be accessible through the API. Users looking to delete their accounts will have their active status updated to `false`, essentially soft-deactivating their accounts. Users who do not comeback after retention period will have their accounts permanently deleted by an automation script using a privileged database account. 
 
 ---
 
@@ -124,8 +124,9 @@ On account creation, the updated_at value of the entry is synced with the create
 ---
 
 ## Relationships
-### account_memberships
+- [account_memberships](/schema/account_memberships)
+- [email_verifications](/schema/email_verifications)
+- [password_resets](/schema/password_resets)
 
-### email_verifications
 
-### password_resets
+<br>
