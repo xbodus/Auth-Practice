@@ -32,7 +32,7 @@ class AccountMemberships(Base):
 
     account_id = Column(Integer, ForeignKey("accounts.account_id", ondelete="CASCADE"), primary_key=True)
     user_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), primary_key=True)
-    role_id = Column(Integer, ForeignKey("roles.role_id", ondelete="NO ACTION"))
+    role_id = Column(Integer, ForeignKey("roles.role_id", ondelete="NO ACTION"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     accounts = relationship("Accounts", back_populates="memberships")

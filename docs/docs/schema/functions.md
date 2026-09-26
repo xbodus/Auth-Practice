@@ -10,7 +10,6 @@ use cases within the application.
 ## Pre-Authentication Functions
 ### get_user_for_login(text)
 ```sql
-# Function
 CREATE FUNCTION get_user_for_login(p_username text)
 RETURNS TABLE
     (
@@ -25,7 +24,6 @@ AS $$
     WHERE username = p_username;
 $$;
 
-# Grant execution privileges on the function to API user
 GRANT EXECUTE ON FUNCTION get_user_for_login(text) TO playground_user_1;
 ```
 To expose only data need for users logging into the application, `get_user_for_login(text)` is used to
@@ -220,7 +218,7 @@ AS $$
         END IF;
         RETURN NEW;
     END;
-$$
+$$;
 ```
 Function used by [users](/schema/users/#trg_update_email_verified) table to reset email verified value if users updates their email. Checks if new email is different from the old email. If so, the function resets the verified status to false until the user re-verifies their email using the email verification token sent to their new email at time of update. API uses RETURNING statement to verify change before starting verification workflow.
 
