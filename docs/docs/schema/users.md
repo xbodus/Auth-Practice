@@ -48,8 +48,7 @@ USING (
     user_id = current_setting('app.current_user_id', true)::integer
 )
 ```
-Limits rows users are able to select to only rows that are attached to their _*user_id*_. 
-Users attempting to select from the users table without valid user_id will be blocked.
+Limits rows users can SELECT on the users table to only rows where the user_id equals the **app.current_user_id**. The user_id is set during the transaction using `SET LOCAL app.current_user_id`. Attempting to select accounts that do not have the set app.current_user_id will return zero results.
 
 #### update_own_user 
 ```sql
@@ -86,7 +85,7 @@ GRANT INSERT (first_name, last_name, username, password, email, phone, dob, addr
 INSERT operations will be standardized. Users will be able to create entries via the API that contain values for first_name, last_name, username, email, phone, dob, company, address, city, zipcode, and country. As seen in the schema, none of these values are allowed to be `null`. Values will be automatically generated via the default values for user_id, email_verified, created_at, updated_at, and active at time of creation. Prior to INSERT operations, inputs will be validated and sanatized at the API level.
 
 #### DELETE Permissions
-DELETE operations on the users table will not be accessible through the API. Users looking to delete their accounts will have their active status updated to `false`, essentially soft-deactivating their accounts. Users who do not comeback after retention period will have their accounts permanently deleted by an automation script using a privileged database account. 
+DELETE operations on the users table will not be accessible through the API. Users looking to delete their user account will have their active status updated to `false`, essentially soft-deactivating their user account. Users who do not comeback after retention period will have their user account permanently deleted by an automation script using a privileged database account. 
 
 ---
 
@@ -119,7 +118,7 @@ ON users
 FOR EACH ROW
 EXECUTE FUNCTION set_updated_at()
 ```
-On account creation, the updated_at value of the entry is synced with the created_at value. Every time the row is updated thereafter, `trg_users_updated_at` calls [set_updated_at()](/schema/functions/#set_updated_at) to sync the updated_at value to the current time of the update. 
+On user account creation, the updated_at value of the entry is synced with the created_at value. Every time the row is updated thereafter, `trg_users_updated_at` calls [set_updated_at()](/schema/functions/#set_updated_at) to sync the updated_at value to the current time of the update. 
 
 ---
 
