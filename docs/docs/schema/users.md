@@ -1,6 +1,6 @@
 ## Overview
 The users table serves to store individual user account information. User accounts will be the main 
-object to determine authentication to and authorizations within an [account](/schema/accounts).
+object to determine authentication to and authorizations within an [account](accounts.md).
 
 ---
 
@@ -66,7 +66,7 @@ Users attempting to update data within the users table without valid user_id wil
 ```sql
 GRANT SELECT (first_name, last_name, username, email, email_verified, phone, dob, company, address, city, zipcode, country, created_at, updated_at, active) ON users TO playground_user_1;
 ```
-Authenticated users will be able to select most information that is relevant to their user account. Excludes: user_id (attached to JWT after user authenticates) and password (only exposed at time of login). See [get_user_for_login()](/schema/functions/#get_user_for_logintext) for more information. 
+Authenticated users will be able to select most information that is relevant to their user account. Excludes: user_id (attached to JWT after user authenticates) and password (only exposed at time of login). See [get_user_for_login()](functions.md#get_user_for_logintext) for more information. 
 
 #### UPDATE Permissions 
 ```sql
@@ -94,7 +94,7 @@ ON users
 FOR EACH ROW
 EXECUTE FUNCTION prevent_created_at_update();
 ```
-Entries entered into the users table will automatically have a create_at value assigned to the entry at time of creation. This value is intended for accurate historical records, and should not be modified via the API or any privileged database user. To ensure this, `trg_users_freeze_created_at` calls [prevent_created_at_update()](/schema/functions/#prevent_created_at_update) to revert any potential updates to the created_at value to the original value.
+Entries entered into the users table will automatically have a create_at value assigned to the entry at time of creation. This value is intended for accurate historical records, and should not be modified via the API or any privileged database user. To ensure this, `trg_users_freeze_created_at` calls [prevent_created_at_update()](functions.md#prevent_created_at_update) to revert any potential updates to the created_at value to the original value.
 
 ### trg_update_email_verified
 ```sql
@@ -104,7 +104,7 @@ ON users
 FOR EACH ROW
 EXECUTE FUNCTION reset_email_verified_on_change();
 ```
-On account creation, new users will be asked to verify their email to verify account authenticity. Users who do not complete this task will not have privileged access to the application. This is a method to deter illegitimate signups, such as bot sign ups and avoid potential problems if account is locked out without a method to recover the account. Users will still be able to update their emails if necessary. Doing so would require re-verifying their email account causing `trg_update_email_verified` to fire and call [reset_email_verified_on_change()](/schema/functions/#reset_email_verified_on_change). 
+On account creation, new users will be asked to verify their email to verify account authenticity. Users who do not complete this task will not have privileged access to the application. This is a method to deter illegitimate signups, such as bot sign ups and avoid potential problems if account is locked out without a method to recover the account. Users will still be able to update their emails if necessary. Doing so would require re-verifying their email account causing `trg_update_email_verified` to fire and call [reset_email_verified_on_change()](functions.md#reset_email_verified_on_change). 
 
 ### trg_users_updated_at
 ```sql
@@ -114,14 +114,14 @@ ON users
 FOR EACH ROW
 EXECUTE FUNCTION set_updated_at();
 ```
-On user account creation, the updated_at value of the entry is synced with the created_at value. Every time the row is updated thereafter, `trg_users_updated_at` calls [set_updated_at()](/schema/functions/#set_updated_at) to sync the updated_at value to the current time of the update. 
+On user account creation, the updated_at value of the entry is synced with the created_at value. Every time the row is updated thereafter, `trg_users_updated_at` calls [set_updated_at()](functions.md#set_updated_at) to sync the updated_at value to the current time of the update. 
 
 ---
 
 ## Relationships
-- [account_memberships](/schema/account_memberships)
-- [email_verifications](/schema/email_verifications)
-- [password_resets](/schema/password_resets)
+- [account_memberships](account_memberships.md)
+- [email_verifications](email_verifications.md)
+- [password_resets](password_resets.md)
 
 
 <br>

@@ -129,7 +129,7 @@ ON account_memberships
 FOR EACH ROW
 EXECUTE FUNCTION prevent_created_at_update();
 ```
-Entries entered into the account_memberships table will automatically have a create_at value assigned to the entry at time of creation. This value is intended for accurate historical records, and should not be modified via the API or any privileged database user. To ensure this, `trg_account_memberships_freeze_created_at` calls [prevent_created_at_update()](/schema/functions/#prevent_created_at_update) to revert any potential updates to the created_at value to the original value.
+Entries entered into the account_memberships table will automatically have a create_at value assigned to the entry at time of creation. This value is intended for accurate historical records, and should not be modified via the API or any privileged database user. To ensure this, `trg_account_memberships_freeze_created_at` calls [prevent_created_at_update()](functions.md#prevent_created_at_update) to revert any potential updates to the created_at value to the original value.
 
 ### trg_prevent_last_admin_removal
 ```sql
@@ -138,11 +138,11 @@ BEFORE UPDATE OR DELETE ON account_memberships
 FOR EACH ROW
 EXECUTE FUNCTION prevent_last_admin_removal();
 ```
-Accounts must have at least one active admin within an account. This is important to avoid soft-locking an account, as admins have ultimate control of authorizations within an account and account state, such as activating or deactivating an account. Users attempting to update the last admin to a non-admin role or delete the last admin will trigger `trg_prevent_last_admin_removal`. See [prevent_last_admin_removal()](/schema/functions/#prevent_last_admin_removal) for more information about the function that prevents the last admin removal.
+Accounts must have at least one active admin within an account. This is important to avoid soft-locking an account, as admins have ultimate control of authorizations within an account and account state, such as activating or deactivating an account. Users attempting to update the last admin to a non-admin role or delete the last admin will trigger `trg_prevent_last_admin_removal`. See [prevent_last_admin_removal()](functions.md#prevent_last_admin_removal) for more information about the function that prevents the last admin removal.
 
 ---
 
 ## Relationships
-- [users](/schema/users)
-- [accounts](/schema/accounts)
-- [roles](/schema/roles)
+- [users](users.md)
+- [accounts](accounts.md)
+- [roles](roles.md)

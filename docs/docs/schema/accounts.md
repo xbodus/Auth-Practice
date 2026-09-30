@@ -1,5 +1,5 @@
 ## Overview
-\[Product\] is a multitenant application, allowing a single user account to be a member of multiple accounts. The accounts table defines the basic qualities of an account, and works in conjunction with [account_memberships](/schema/account_memberships) to map users to accounts.
+\[Product\] is a multitenant application, allowing a single user account to be a member of multiple accounts. The accounts table defines the basic qualities of an account, and works in conjunction with [account_memberships](account_memberships.md) to map users to accounts.
 
 ---
 
@@ -69,7 +69,7 @@ Limits rows users can UPDATE on the accounts table to rows where the ***set user
 ```sql
 GRANT SELECT (name, type, active) ON accounts TO playground_user_1;
 ```
-Authenticated users will be able to select necessary information that is relevant to the account they are a member of, such as the name of the account, the type of account, and if the account is active. **Excludes**: account_id (attached to JWT after user selects account after authenticating), created_at, and updated_at (used for historical records). See [get_accounts_for_user(integer)](/schema/functions/#get_accounts_for_userinteger) for more information. 
+Authenticated users will be able to select necessary information that is relevant to the account they are a member of, such as the name of the account, the type of account, and if the account is active. **Excludes**: account_id (attached to JWT after user selects account after authenticating), created_at, and updated_at (used for historical records). See [get_accounts_for_user(integer)](functions.md#get_accounts_for_userinteger) for more information. 
 
 #### UPDATE Permissions
 ```sql
@@ -97,7 +97,7 @@ ON accounts
 FOR EACH ROW
 EXECUTE FUNCTION prevent_created_at_update();
 ```
-Entries entered into the accounts table will automatically have a create_at value assigned to the entry at time of creation. This value is intended for accurate historical records, and should not be modified via the API or any privileged database user. To ensure this, `trg_accounts_freeze_created_at` calls [prevent_created_at_update()](/schema/functions/#prevent_created_at_update) to revert any potential updates to the created_at value to the original value.
+Entries entered into the accounts table will automatically have a create_at value assigned to the entry at time of creation. This value is intended for accurate historical records, and should not be modified via the API or any privileged database user. To ensure this, `trg_accounts_freeze_created_at` calls [prevent_created_at_update()](functions.md#prevent_created_at_update) to revert any potential updates to the created_at value to the original value.
 
 ### trg_accounts_updated_at
 ```sql
@@ -107,9 +107,9 @@ ON accounts
 FOR EACH ROW
 EXECUTE FUNCTION set_updated_at();
 ```
-On account creation, the updated_at value of the entry is synced with the created_at value. Every time the row is updated thereafter, `trg_users_updated_at` calls [set_updated_at()](/schema/functions/#set_updated_at) to sync the updated_at value to the current time of the update. 
+On account creation, the updated_at value of the entry is synced with the created_at value. Every time the row is updated thereafter, `trg_users_updated_at` calls [set_updated_at()](functions.md#set_updated_at) to sync the updated_at value to the current time of the update. 
 
 ---
 
 ## Relationships
-- [account_memberships](/schema/account_memberships)
+- [account_memberships](account_memberships.md)

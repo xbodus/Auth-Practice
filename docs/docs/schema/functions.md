@@ -29,7 +29,7 @@ GRANT EXECUTE ON FUNCTION get_user_for_login(text) TO playground_user_1;
 To expose only data need for users logging into the application, `get_user_for_login(text)` is used to
 inject only the **user_id** and **password_hash** during the login process. Doing this bypasses RLS policies 
 that require a valid user_id (which is not available to an unauthenticated user) to access user login data. 
-See [users schema](/schema/users/#security-and-api-permissions) for more information on relevant policies and permissions.
+See [users schema](users.md#security-and-api-permissions) for more information on relevant policies and permissions.
 
 
 ### get_user_id_for_email(text)
@@ -46,7 +46,7 @@ $$;
 GRANT EXECUTE ON FUNCTION get_user_id_for_email(text) TO playground_user_1;
 ```
 
-Function required for pre-authenticated workflows that require a valid **user_id**. Takes a user's email, and returns the user_id attached to that email. Users who need to reset their password will need to access a limited list of tables in the database prior to authentication. All tables have RLS policies that required at minimum a valid user_id to access rows, such as the [password_resets](/schema/password_resets) table that stores tokens attached to the user's user_id required to validate user identity prior to resetting the password. Users that haven't logged in are pre-authenticated and their user_id has not been attached to their session via JWT. For the duration of the password reset workflow, `get_user_id_for_email(text)` is used by the API to get the user_id of a user's email.  
+Function required for pre-authenticated workflows that require a valid **user_id**. Takes a user's email, and returns the user_id attached to that email. Users who need to reset their password will need to access a limited list of tables in the database prior to authentication. All tables have RLS policies that required at minimum a valid user_id to access rows, such as the [password_resets](password_resets.md) table that stores tokens attached to the user's user_id required to validate user identity prior to resetting the password. Users that haven't logged in are pre-authenticated and their user_id has not been attached to their session via JWT. For the duration of the password reset workflow, `get_user_id_for_email(text)` is used by the API to get the user_id of a user's email.  
 
 
 ### insert_password_reset_token(integer, text)
@@ -203,7 +203,7 @@ AS $$
 $$;
 ```
 
-Function used by token tables ([password_resets](/schema/password_resets) and [email_verfications](/schema/email_verifications)) to prevent tampering of the expires_at value. Token verification relies on expires_at as an important parmemeter to determine the validity of a token. This value must be set at time of token creation and never altered thereafter, as it can lead to malicious use cases. To ensure proper preventative measures are in place, the API is not given permission to perform UPDATE operations on tables that include the expires_at column, and applicable tables have triggers that call on `prevent_expires_at_update()` to block privileged database accounts from updating the column while the trigger is active. 
+Function used by token tables ([password_resets](password_resets.md) and [email_verfications](email_verifications.md)) to prevent tampering of the expires_at value. Token verification relies on expires_at as an important parmemeter to determine the validity of a token. This value must be set at time of token creation and never altered thereafter, as it can lead to malicious use cases. To ensure proper preventative measures are in place, the API is not given permission to perform UPDATE operations on tables that include the expires_at column, and applicable tables have triggers that call on `prevent_expires_at_update()` to block privileged database accounts from updating the column while the trigger is active. 
 
 ### reset_email_verified_on_change()
 ```sql
@@ -220,7 +220,7 @@ AS $$
     END;
 $$;
 ```
-Function used by [users](/schema/users/#trg_update_email_verified) table to reset email verified value if users updates their email. Checks if new email is different from the old email. If so, the function resets the verified status to false until the user re-verifies their email using the email verification token sent to their new email at time of update. API uses RETURNING statement to verify change before starting verification workflow.
+Function used by [users](users.md#trg_update_email_verified) table to reset email verified value if users updates their email. Checks if new email is different from the old email. If so, the function resets the verified status to false until the user re-verifies their email using the email verification token sent to their new email at time of update. API uses RETURNING statement to verify change before starting verification workflow.
 
 
 ### prevent_last_admin_removal()
@@ -257,5 +257,5 @@ AS $$
 $$;
 ```
 
-Function used by [accounts](/schema/accounts) to prevent users from soft locking accounts due to no admins being able to control the account. User within an account assigned the role of admin will have ultimate control of what happens in their account, barring they follow acceptable use policies. The admin account will be in control of deciding account authorizations to sub-users, controlling account details, and deciding deactivation of account. Deleting all admins from an account would cause the account to lose access to this functionality, essentially soft locking the account from alterations that require an admin. To prevent this, a trigger is placed on the accounts table that calls `prevent_last_admin_removal()` on UPDATE and DELETE operations.
+Function used by [accounts](accounts.md) to prevent users from soft locking accounts due to no admins being able to control the account. User within an account assigned the role of admin will have ultimate control of what happens in their account, barring they follow acceptable use policies. The admin account will be in control of deciding account authorizations to sub-users, controlling account details, and deciding deactivation of account. Deleting all admins from an account would cause the account to lose access to this functionality, essentially soft locking the account from alterations that require an admin. To prevent this, a trigger is placed on the accounts table that calls `prevent_last_admin_removal()` on UPDATE and DELETE operations.
 <br>

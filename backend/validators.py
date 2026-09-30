@@ -35,9 +35,6 @@ class User(BaseModel):
     dob: PastDate
     email: EmailStr
     phone: int = Field(min_length=10)
-    mfa: bool = Field(default=False)
-    mfa_method: MFAMethods | None = Field(default=None)
-    permissions: UserPermissions = Field(default=UserPermissions.user)
-    created: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), frozen=True)
-    updated: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    last_access: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    mfa: bool = Field(default=False) # Need to add to user model
+    mfa_method: MFAMethods | None = Field(default=None) # Need to add to user model
+    last_accessed: datetime = Field(default_factory=lambda: datetime.now(timezone.utc)) # Need to add to user model
