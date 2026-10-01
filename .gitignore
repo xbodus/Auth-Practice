@@ -19,6 +19,15 @@ __pycache__/
 *$py.class
 *.pyc
 
+# .NET / C# Build Artifacts
+[Bb]in/
+[Oo]bj/
+*.user
+*.userosscache
+
+# IDE / Editor files
+.vs/
+
 # Planning
 plan.md
 

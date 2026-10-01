@@ -1,0 +1,12 @@
+@api_HostAddress = http://localhost:5055
+
+
+POST {{api_HostAddress}}/auth/login
+Content-Type: application/json
+
+{
+    "username": "testuser",
+    "password": "Password123"
+}
+
+###
