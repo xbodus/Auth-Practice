@@ -4,7 +4,7 @@ using Api.Models;
 using Api.Services;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http; // Allows access to HttpContext, which gives methods access to HTTP headers and more
-
+using System;
 
 
 public static class AuthEndpoints
@@ -16,7 +16,8 @@ public static class AuthEndpoints
         var group = app.MapGroup("/auth").WithTags("Authentication");
 
         // Register endpoints to the group
-        group.MapPost("/login", LoginHandler);
+        group.MapPost("/login", LoginHandler)
+            .RequireRateLimiting("LoginPolicy");
     }
 
     private static async Task<IResult> LoginHandler(
@@ -44,6 +45,15 @@ public static class AuthEndpoints
             return Results.Unauthorized();
         }
 
-        return Results.Ok(new { message = $"Hello {credentials.Username}, logged in successfully", request = context.Request.Path }); // Placeholder till we can build a proper LoginResponse class
+        Guid uuid7 = Guid.CreateVersion7();
+
+        var cookies = new CookieOptions
+        {
+            Expires = DateTimeOffset.UtcNow.AddHours(24) // Expiration time
+        };
+
+        context.Response.Cookies.Append("UserSessionId", uuid7.ToString(), cookies);
+
+        return Results.Ok(new { message = $"Hello {credentials.Username}, logged in successfully", response = context.Response.Cookies }); // Placeholder till we can build a proper LoginResponse class
     }
 }
