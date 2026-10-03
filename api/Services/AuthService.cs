@@ -9,13 +9,13 @@ namespace Api.Services;
 using Api.Models;
 
 
-public class ProcessRequest
+public class AuthService : IAuthService
 {
-    public static async Task<IResult> HandleLogin(LoginCredentials credentials)
+    public async Task<bool> HandleLoginAsync(LoginCredentials credentials)
     {
         // 1. Call Data layer to get password hash
         // 2. Verify password
-        // 3. Return IResult (Ok, Unauthorized, etc.)
-        return Results.Ok(new { Message = "Logged in successfully" });
+        // 3. Return success (true) or fail (false)
+        return await Task.FromResult(true);
     }
 }

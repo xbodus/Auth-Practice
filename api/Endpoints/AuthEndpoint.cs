@@ -3,11 +3,13 @@ namespace Api.Endpoints;
 using Api.Models;
 using Api.Services;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http; // Allows access to HttpContext, which gives methods access to HTTP headers and more
 
 
 
 public static class AuthEndpoints
 {
+    // Extension method. 'this' keyword before the parameter extends MapAuthEndpoints as if it were a method of app. So we can call app.MapAuthEndpoints to register auth endpoints
     public static void MapAuthEndpoints(this IEndpointRouteBuilder app)
     {
         // Create the endpoint group
@@ -17,20 +19,31 @@ public static class AuthEndpoints
         group.MapPost("/login", LoginHandler);
     }
 
-    private static async Task<IResult> LoginHandler(LoginCredentials credentials)
+    private static async Task<IResult> LoginHandler(
+        LoginCredentials credentials, 
+        HttpContext context,
+        IAuthService authService)
     {
         // Temporary test login logic
         // Need to confirm if request object is automatically passed like it is in FastAPI
         // Eventually endpoint will need to take data that matches the shape of LoginCredentials and pass to ProcessRequests.HandleLogin()
         var validationResults = new List<ValidationResult>();
-        var context = new ValidationContext(credentials);
+        var credentialsContext = new ValidationContext(credentials);
 
-        if (!Validator.TryValidateObject(credentials, context, validationResults, validateAllProperties: true))
+        if (!Validator.TryValidateObject(credentials, credentialsContext, validationResults, validateAllProperties: true))
         {
             var errors = validationResults.Select(r => r.ErrorMessage);
             return Results.BadRequest(new { errors });
         }
 
-        return Results.Ok(new { message = $"Hello {credentials.Username}, logged in successfully" }); // Placeholder till we can build a proper LoginResponse class
+        // Call the HandleLogin static method to process the login request
+        var isAuthorized = await authService.HandleLoginAsync(credentials);
+
+        if (!isAuthorized)
+        {
+            return Results.Unauthorized();
+        }
+
+        return Results.Ok(new { message = $"Hello {credentials.Username}, logged in successfully", request = context.Request.Path }); // Placeholder till we can build a proper LoginResponse class
     }
 }

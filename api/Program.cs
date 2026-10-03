@@ -1,10 +1,14 @@
 using Api.Endpoints;
+using Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+// Add scoped dependencies
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
 

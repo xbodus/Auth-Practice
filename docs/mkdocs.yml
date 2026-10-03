@@ -10,7 +10,10 @@ nav:
       - Password Resets: schema/password_resets.md
       - Email Verifications: schema/email_verifications.md
       - Functions: schema/functions.md
-  - API: api/api.md
+  - API: 
+      - Overview: api/index.md
+      - Endpoints: api/endpoints.md
+      - Services: api/services.md
 
 theme:
   name: material
