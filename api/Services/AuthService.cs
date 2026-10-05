@@ -16,6 +16,6 @@ public class AuthService : IAuthService
         // 1. Call Data layer to get password hash
         // 2. Verify password
         // 3. Return success (true) or fail (false)
-        return await Task.FromResult(true);
+        return await Task.FromResult(false);
     }
 }

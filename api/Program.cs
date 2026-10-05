@@ -3,6 +3,7 @@ using Api.Services;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.CookiePolicy;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,6 +48,16 @@ builder.Services.AddRateLimiter(options =>
     });
 });
 
+// Configure Serilog
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.File("logs/api-.log", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
+builder.Host.UseSerilog();
+
 // Add scoped dependencies
 builder.Services.AddScoped<IAuthService, AuthService>();
 
@@ -62,6 +73,9 @@ if (app.Environment.IsDevelopment())
 app.UseCors("ReactAppPolicy");
 app.UseCookiePolicy();
 app.UseRateLimiter();
+
+// Log HTTP
+app.UseSerilogRequestLogging();
 
 app.UseHttpsRedirection();
 

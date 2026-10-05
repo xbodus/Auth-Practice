@@ -23,11 +23,13 @@ public static class AuthEndpoints
     private static async Task<IResult> LoginHandler(
         LoginCredentials credentials, 
         HttpContext context,
-        IAuthService authService)
+        IAuthService authService,
+        ILoggerFactory loggerFactory)
     {
         // Temporary test login logic
         // Need to confirm if request object is automatically passed like it is in FastAPI
         // Eventually endpoint will need to take data that matches the shape of LoginCredentials and pass to ProcessRequests.HandleLogin()
+        var logger = loggerFactory.CreateLogger("AuthEndpoints");
         var validationResults = new List<ValidationResult>();
         var credentialsContext = new ValidationContext(credentials);
 
@@ -42,6 +44,7 @@ public static class AuthEndpoints
 
         if (!isAuthorized)
         {
+            logger.LogWarning("Failed login attempt for user: {username}", credentials.Username);
             return Results.Unauthorized();
         }
 
@@ -54,6 +57,7 @@ public static class AuthEndpoints
 
         context.Response.Cookies.Append("UserSessionId", uuid7.ToString(), cookies);
 
+        logger.LogInformation("Successful login attempt for user: {username}", credentials.Username);
         return Results.Ok(new { message = $"Hello {credentials.Username}, logged in successfully", response = context.Response.Cookies }); // Placeholder till we can build a proper LoginResponse class
     }
 }
