@@ -15,7 +15,7 @@ load_dotenv()
 # Add the project root (parent of backend/) to sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
-from backend.models import Base
+from database.models import Base
 
 
 # this is the Alembic Config object, which provides

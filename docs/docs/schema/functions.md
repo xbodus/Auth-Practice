@@ -71,8 +71,68 @@ $$;
 GRANT EXECUTE ON FUNCTION insert_password_reset_token(integer, text) TO playground_user_1;
 ```
 
-Function called by the API when pre-authenticated user initializes a password reset workflow. Takes the user_id and generated password token hash, and stores it in the reset_tokens table. Returns true if insert is successful, else false. Tokens inserted using this function will automatically have a created_at value, an expires_at value (5 minutes after generation), and will default into an unused state at time of creation. 
+Function called by the API when pre-authenticated user initializes a password reset workflow. Takes the user_id and generated password token hash, and stores it in the [password_resets](password_resets.md) table. Returns true if insert is successful, else false. Tokens inserted using this function will automatically have a created_at value, an expires_at value (5 minutes after generation), and will default into an unused state at time of creation. 
 
+### verify_password_reset_token(text)
+```sql
+CREATE FUNCTION verify_password_reset_token(p_token_hash text)
+RETURNS boolean
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    UPDATE password_resets
+    SET used_at = NOW()
+    WHERE token = p_token_hash
+    AND used_at IS NULL
+    AND expires_at > NOW();
+    RETURN FOUND;
+END;
+$$ LANGUAGE plpgsql;
+```
+Function called by the API when a user attempts to verify a password reset token. It take a hashed token and checks if the token has been used and is not expired. If the token passes verification, the user will be allowed to continue the password reset workflow.
+
+### insert_email_verification_token(integer, text)
+```sql
+CREATE FUNCTION insert_email_verification_token(p_user_id integer, p_token_hash text)
+    RETURNS BOOLEAN 
+    SECURITY DEFINER
+    SET search_path = public
+    LANGUAGE plpgsql
+AS $$
+    BEGIN
+        INSERT INTO email_verifications (user_id, token)
+        VALUES (p_user_id, p_token_hash);
+
+        RETURN TRUE;
+    EXCEPTION
+        WHEN OTHERS THEN
+            RETURN FALSE;
+    END;
+$$;
+
+GRANT EXECUTE ON FUNCTION insert_email_verification_token(integer, text) TO playground_user_1;
+```
+Function called by the API when pre-authenticated user initializes an email verification workflow. Takes the user_id and generated password token hash, and stores it in the [email_verifications](email_verifications.md) table. Returns true if insert is successful, else false. Tokens inserted using this function will automatically have a created_at value, an expires_at value (5 minutes after generation), and will default into an unused state at time of creation.
+
+### verify_email_verification_token(text)
+```sql
+CREATE FUNCTION verify_email_verification_token(p_token_hash text)
+RETURNS boolean
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    UPDATE email_verifications
+    SET used_at = NOW()
+    WHERE token = p_token_hash
+    AND used_at IS NULL
+    AND expires_at > NOW();
+    RETURN FOUND;
+END;
+$$ LANGUAGE plpgsql;
+```
+Function called by the API when a user attempts to verify an email verification token. It take a hashed token and checks if the token has been used and is not expired. If the token passes verification, the user will be allowed to continue the email verification workflow.
 
 ### get_user_for_reset_token(text)
 ```sql
@@ -258,4 +318,5 @@ $$;
 ```
 
 Function used by [accounts](accounts.md) to prevent users from soft locking accounts due to no admins being able to control the account. User within an account assigned the role of admin will have ultimate control of what happens in their account, barring they follow acceptable use policies. The admin account will be in control of deciding account authorizations to sub-users, controlling account details, and deciding deactivation of account. Deleting all admins from an account would cause the account to lose access to this functionality, essentially soft locking the account from alterations that require an admin. To prevent this, a trigger is placed on the accounts table that calls `prevent_last_admin_removal()` on UPDATE and DELETE operations.
+
 <br>

@@ -19,6 +19,7 @@ builder.Services.AddCors(options =>
         var allowedHosts = builder.Environment.IsDevelopment() 
             ? new string[] {"http://localhost:5137", "http://localhost:3000"}
             : new string[] {};
+            
         policy.WithOrigins(allowedHosts)
             .AllowAnyHeader()
             .AllowAnyMethod()

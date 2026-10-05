@@ -15,7 +15,7 @@
 ---
 
 ## Endpoints/
-Files that define the API's accessible endpoints are stored in Endpoints/. These endpoints are then grouped and registered to the application within Program.cs, the main application build file.
+Files that define the API's accessible endpoints are stored in Endpoints/. These endpoints are then grouped by resource and registered to the application within Program.cs, the main application build file.
 
 *Ex: AuthEndpoints.cs registers endpoints for the auth service: auth/login, auth/signup, etc.*
 
