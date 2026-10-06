@@ -24,6 +24,7 @@ __pycache__/
 [Oo]bj/
 *.user
 *.userosscache
+logs/
 
 # IDE / Editor files
 .vs/

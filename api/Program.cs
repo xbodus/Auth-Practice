@@ -4,6 +4,22 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.CookiePolicy;
 using Serilog;
+using Npgsql;
+
+
+// Load .env file into environment variables if it exists
+var envPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
+if (File.Exists(envPath))
+{
+    foreach (var line in File.ReadAllLines(envPath))
+    {
+        var parts = line.Split('=', 2, StringSplitOptions.TrimEntries);
+        if (parts.Length == 2 && !parts[0].StartsWith('#'))
+        {
+            Environment.SetEnvironmentVariable(parts[0], parts[1]);
+        }
+    }
+}
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,8 +34,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy("ReactAppPolicy", policy =>
     {
         var allowedHosts = builder.Environment.IsDevelopment() 
-            ? new string[] {"http://localhost:5137", "http://localhost:3000"}
-            : new string[] {};
+            ? ["http://localhost:5137", "http://localhost:3000"]
+            : new string[] { };
             
         policy.WithOrigins(allowedHosts)
             .AllowAnyHeader()
@@ -58,6 +74,19 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
+var baseConnString = builder.Configuration.GetConnectionString("AuthDb");
+var connBuilder = new NpgsqlConnectionStringBuilder(baseConnString)
+{
+    Host = builder.Configuration["PG_HOST"],
+    Database = builder.Configuration["PG_DATABASE"],
+    Port = builder.Configuration.GetValue<int>("PG_PORT", 5432),
+    Username = builder.Configuration["PG_RT_USER"],
+    Password = builder.Configuration["PG_RT_PASSWORD"]
+};
+
+var dataSource = NpgsqlDataSource.Create(connBuilder.ConnectionString);
+builder.Services.AddSingleton(dataSource);
+
 // Add scoped dependencies
 builder.Services.AddScoped<IAuthService, AuthService>();
 
@@ -69,15 +98,15 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-// Register Middleware
-app.UseCors("ReactAppPolicy");
-app.UseCookiePolicy();
-app.UseRateLimiter();
+app.UseHttpsRedirection();
 
 // Log HTTP
 app.UseSerilogRequestLogging();
 
-app.UseHttpsRedirection();
+// Register Middleware
+app.UseCors("ReactAppPolicy");
+app.UseCookiePolicy();
+app.UseRateLimiter();
 
 // Register endpoints to application
 app.MapAuthEndpoints();
