@@ -1,12 +1,31 @@
 @api_HostAddress = http://localhost:5055
 
 
-POST {{api_HostAddress}}/auth/login
+# POST {{api_HostAddress}}/auth/login
+# Content-Type: application/json
+
+# {
+#     "username": "testuser",
+#     "password": "Password123"
+# }
+
+POST {{api_HostAddress}}/auth/signup
 Content-Type: application/json
 
 {
+    "firstName": "John",
+    "lastName": "Doe",
     "username": "testuser",
-    "password": "Password123"
+    "password": "Password123",
+    "email": "johndoe@example.com",
+    "phone": "555-123-4567",
+    "dob": "1995-05-15",
+    "address": "123 Main St",
+    "city": "Metropolis",
+    "state": "NY",
+    "zipcode": "10001",
+    "country": "USA",
+    "company": null
 }
 
 ###

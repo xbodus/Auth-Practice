@@ -1,5 +1,5 @@
 ## Overview
-\[Product\] is a multitenant application, allowing a single user account to be a member of multiple accounts. The accounts table defines the basic qualities of an account, and works in conjunction with [account_memberships](account_memberships.md) to map users to accounts.
+Verolith is a multitenant application, allowing a single user account to be a member of multiple accounts. The accounts table defines the basic qualities of an account, and works in conjunction with [account_memberships](account_memberships.md) to map users to accounts.
 
 ---
 

@@ -1,7 +1,7 @@
-namespace Api.Endpoints;
+namespace Verolith.Api.Endpoints;
 
-using Api.Models;
-using Api.Services;
+using Verolith.Api.Models;
+using Verolith.Api.Services;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http; // Allows access to HttpContext, which gives methods access to HTTP headers and more
 using System;
@@ -19,16 +19,14 @@ public static class AuthEndpointsExtensions
         // Register endpoints to the group
         group.MapPost("/login", LoginHandler)
             .RequireRateLimiting("LoginPolicy");
+        group.MapPost("/signup", SignupHandler);
     }
 
     private static async Task<IResult> LoginHandler(
         LoginCredentials credentials, 
-        HttpContext context,
         IAuthService authService)
     {
         // Temporary test login logic
-        // Need to confirm if request object is automatically passed like it is in FastAPI
-        // Eventually endpoint will need to take data that matches the shape of LoginCredentials and pass to ProcessRequests.HandleLogin()
         var validationResults = new List<ValidationResult>();
         var credentialsContext = new ValidationContext(credentials);
 
@@ -38,7 +36,6 @@ public static class AuthEndpointsExtensions
             return Results.BadRequest(new { errors });
         }
 
-        // Call the HandleLogin static method to process the login request
         var isAuthorized = await authService.HandleLoginAsync(credentials);
 
         if (!isAuthorized)
@@ -46,15 +43,31 @@ public static class AuthEndpointsExtensions
             return Results.Unauthorized();
         }
 
-        Guid uuid7 = Guid.CreateVersion7();
+        return Results.Ok(new { message = $"Hello {credentials.Username}, logged in successfully" }); // Placeholder till we can build a proper LoginResponse class
+    }
 
-        var cookies = new CookieOptions
+    private static async Task<IResult> SignupHandler(
+        UserSignupRecord user,
+        IAuthService authService
+    )
+    {
+        // Validate user input matches required input shape
+        var validationResults = new List<ValidationResult>();
+        var userContext = new ValidationContext(user);
+
+        if (!Validator.TryValidateObject(user, userContext, validationResults, validateAllProperties: true))
         {
-            Expires = DateTimeOffset.UtcNow.AddHours(24) // Expiration time
-        };
+            var errors = validationResults.Select(r => r.ErrorMessage);
+            return Results.BadRequest(new { errors }); // Return 400 malformed payload
+        }
 
-        context.Response.Cookies.Append("UserSessionId", uuid7.ToString(), cookies);
+        bool result = await authService.HandleUserSignupAsync(user); 
 
-        return Results.Ok(new { message = $"Hello {credentials.Username}, logged in successfully", response = context.Response.Cookies }); // Placeholder till we can build a proper LoginResponse class
+        if (!result)
+        {
+            return Results.InternalServerError(); // Return 500 server side error
+        }
+
+        return Results.Created(); // Return 201 Created
     }
 }

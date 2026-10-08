@@ -1,6 +1,6 @@
-# Auth Practice Playground
+# Verolith
 ___
-FastAPI + React Router + Postgres playground for testing API security best practices
+Unified Cloud Management & Security Platform (.NET 10 Minimal API + React + PostgreSQL)
 ___
 ## Auth Security Practices
 __*Authentication Methods & Best Practices*__  

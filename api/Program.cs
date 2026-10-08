@@ -1,13 +1,14 @@
-using Api.Endpoints;
-using Api.Services;
+using Verolith.Api.Endpoints;
+using Verolith.Api.Services;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.CookiePolicy;
 using Serilog;
 using Npgsql;
+using Verolith.Api.Data;
 
 
-// Load .env file into environment variables if it exists
+// Load .env file into environment variables if it exists. In production we will set proper environment variables
 var envPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
 if (File.Exists(envPath))
 {
@@ -74,7 +75,10 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
+// Configure connection to database 
+// Core connectionString in appsettings.Development.json (AuthDb)
 var baseConnString = builder.Configuration.GetConnectionString("AuthDb");
+// Add variables from .env
 var connBuilder = new NpgsqlConnectionStringBuilder(baseConnString)
 {
     Host = builder.Configuration["PG_HOST"],
@@ -85,10 +89,12 @@ var connBuilder = new NpgsqlConnectionStringBuilder(baseConnString)
 };
 
 var dataSource = NpgsqlDataSource.Create(connBuilder.ConnectionString);
+// Add database connection to application DI container
 builder.Services.AddSingleton(dataSource);
 
 // Add scoped dependencies
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IAuthData, AuthData>();
 
 var app = builder.Build();
 

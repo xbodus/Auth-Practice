@@ -1,5 +1,5 @@
 # API Overview
-\[Product's\] API is build with ASP .NET Core v10.0.112. The project is organized as follows:
+Verolith's API is built with ASP.NET Core v10.0.112. The project is organized as follows:
 
     API  project structure
     api/
