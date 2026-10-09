@@ -7,7 +7,7 @@ object to determine authentication to and authorizations within an [account](acc
 ## Schema
 ```sql
 CREATE TABLE users (
-    user_id       INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_id       UUID PRIMARY KEY,
     first_name    VARCHAR(50) NOT NULL,
     last_name     VARCHAR(50) NOT NULL,
     username      VARCHAR(50) NOT NULL UNIQUE,
@@ -41,7 +41,7 @@ CREATE TABLE users (
 ```sql
 CREATE POLICY select_own_user ON users FOR SELECT TO playground_user_1 
 USING (
-    user_id = current_setting('app.current_user_id', true)::integer
+    user_id = current_setting('app.current_user_id', true)::uuid
 );
 ```
 Limits rows users can SELECT on the users table to only rows where the user_id equals the **app.current_user_id**. The user_id is set during the transaction using `SET LOCAL app.current_user_id`. Attempting to select accounts that do not have the set app.current_user_id will return zero results.
@@ -50,10 +50,10 @@ Limits rows users can SELECT on the users table to only rows where the user_id e
 ```sql
 CREATE POLICY update_own_user ON users FOR UPDATE TO playground_user_1 
 USING (
-    user_id = current_setting('app.current_user_id', true)::integer
+    user_id = current_setting('app.current_user_id', true)::uuid
 ) 
 WITH CHECK (
-    user_id = current_setting('app.current_user_id', true)::integer
+    user_id = current_setting('app.current_user_id', true)::uuid
 );
 ```
 Limits rows users are able to update to only rows that are attached to their _*user_id*_.
@@ -74,9 +74,9 @@ GRANT UPDATE (first_name, last_name, username, password, email, phone, dob, comp
 ```
 Authenticated users will be able to update most information that is relevant to their user account. Users shouldn't be able to directly update fields that affect the user object identity, authorizations, or historical tracking, such as user_id, email_verified, created_at, and updated_at via the API.
 
-#### INSERT Permissions
+#### INSERT Permissions 
 ```sql
-GRANT INSERT (first_name, last_name, username, password, email, phone, dob, address, city, state, zipcode, country, company) ON users TO playground_user_1;
+GRANT INSERT (user_id, first_name, last_name, username, password, email, phone, dob, address, city, state, zipcode, country, company) ON users TO playground_user_1;
 ```
 INSERT operations will be standardized. Users will be able to create entries via the API that contain values for first_name, last_name, username, email, phone, dob, company, address, city, zipcode, and country. As seen in the schema, none of these values are allowed to be `null`. Values will be automatically generated via the default values for user_id, email_verified, created_at, updated_at, and active at time of creation. Prior to INSERT operations, inputs will be validated and sanatized at the API level.
 

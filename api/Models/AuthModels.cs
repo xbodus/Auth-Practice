@@ -13,7 +13,7 @@ public record LoginCredentials(
     [property: Required(ErrorMessage = "Invalid username/password")] string Password
 );
 
-public record UserLoginRecord(int UserId, string PasswordHash);
+public record UserLoginRecord(Guid UserId, string PasswordHash);
 
 // Create tomorrow
 public record AccountSignupRecord();

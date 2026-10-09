@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, String, Integer, Date, Boolean, func, ForeignKey, false, true, text, Enum as SQLEnum
+from sqlalchemy import Column, DateTime, String, Integer, Date, Boolean, func, ForeignKey, false, true, text, Uuid, Enum as SQLEnum
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from enum import Enum
@@ -31,7 +31,7 @@ class AccountMemberships(Base):
     __tablename__ = "account_memberships"
 
     account_id = Column(Integer, ForeignKey("accounts.account_id", ondelete="CASCADE"), primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), primary_key=True)
+    user_id = Column(Uuid, ForeignKey("users.user_id", ondelete="CASCADE"), primary_key=True)
     role_id = Column(Integer, ForeignKey("roles.role_id", ondelete="NO ACTION"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
@@ -46,7 +46,7 @@ class AccountMemberships(Base):
 class Users(Base):
     __tablename__ = "users"
 
-    user_id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Uuid, primary_key=True)
     first_name = Column(String(50), nullable=False)
     last_name = Column(String(50), nullable=False)
     username = Column(String(50), nullable=False, unique=True)
@@ -89,7 +89,7 @@ class EmailVerifications(Base):
     __tablename__ = "email_verifications"
 
     verification_id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Uuid, ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
     token = Column(String(100), nullable=False, unique=True) # Stores token hash
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     expires_at = Column(
@@ -100,14 +100,14 @@ class EmailVerifications(Base):
     used_at = Column(DateTime(timezone=True), nullable=True)
 
     def __repr__(self):
-        return f"Verification ID: {self.verification_id}, Token: {self.token}, Created: {self.created_at}, Used: {self.used_at if self.used_at else 'Not used'}"
+        return f"Verification ID: {self.verification_id}, Token: {self.token}, Created: {self.created_at}, Used: {self.used_at if self.used_at is not None else 'Not used'}"
 
 
 class PasswordResets(Base):
     __tablename__ = "password_resets"
 
     reset_id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Uuid, ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
     token = Column(String(100), nullable=False, unique=True) # Stores token hash
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     expires_at = Column(
@@ -118,5 +118,5 @@ class PasswordResets(Base):
     used_at = Column(DateTime(timezone=True), nullable=True)
 
     def __repr__(self):
-        return f"Reset ID: {self.reset_id}, Token: {self.token}, Created: {self.created_at}, Used: {self.used_at if self.used_at else 'Not used'}"
+        return f"Reset ID: {self.reset_id}, Token: {self.token}, Created: {self.created_at}, Used: {self.used_at if self.used_at is not None else 'Not used'}"
 

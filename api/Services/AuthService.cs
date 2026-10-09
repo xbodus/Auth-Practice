@@ -43,7 +43,7 @@ public class AuthService(ILogger<AuthService> logger, IAuthData authData) : IAut
         if (!result)
         {
             logger.LogWarning("Failed to create user for {username}", user.Username);
-            // Insert some retry logic incase database is overloaded. Backoff and try again 3 times
+            // NOTE: Insert some retry logic incase database is overloaded. Backoff and try again 3 times
             return false;
         }
 

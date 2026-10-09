@@ -13,7 +13,7 @@ use cases within the application.
 CREATE FUNCTION get_user_for_login(p_username text)
 RETURNS TABLE
     (
-        user_id integer,
+        user_id uuid,
         password_hash text
     ) SECURITY DEFINER
 SET search_path = public
@@ -35,7 +35,7 @@ See [users schema](users.md#security-and-api-permissions) for more information o
 ### get_user_id_for_email(text)
 ```sql
 CREATE FUNCTION get_user_id_for_email(p_email text)
-    RETURNS integer
+    RETURNS uuid
     SECURITY DEFINER
     SET search_path = public
     LANGUAGE sql
@@ -49,9 +49,9 @@ GRANT EXECUTE ON FUNCTION get_user_id_for_email(text) TO playground_user_1;
 Function required for pre-authenticated workflows that require a valid **user_id**. Takes a user's email, and returns the user_id attached to that email. Users who need to reset their password will need to access a limited list of tables in the database prior to authentication. All tables have RLS policies that required at minimum a valid user_id to access rows, such as the [password_resets](password_resets.md) table that stores tokens attached to the user's user_id required to validate user identity prior to resetting the password. Users that haven't logged in are pre-authenticated and their user_id has not been attached to their session via JWT. For the duration of the password reset workflow, `get_user_id_for_email(text)` is used by the API to get the user_id of a user's email.  
 
 
-### insert_password_reset_token(integer, text)
+### insert_password_reset_token(uuid, text)
 ```sql
-CREATE FUNCTION insert_password_reset_token(p_user_id integer, p_token_hash text)
+CREATE FUNCTION insert_password_reset_token(p_user_id uuid, p_token_hash text)
     RETURNS BOOLEAN 
     SECURITY DEFINER
     SET search_path = public
@@ -68,7 +68,7 @@ AS $$
     END;
 $$;
 
-GRANT EXECUTE ON FUNCTION insert_password_reset_token(integer, text) TO playground_user_1;
+GRANT EXECUTE ON FUNCTION insert_password_reset_token(uuid, text) TO playground_user_1;
 ```
 
 Function called by the API when pre-authenticated user initializes a password reset workflow. Takes the user_id and generated password token hash, and stores it in the [password_resets](password_resets.md) table. Returns true if insert is successful, else false. Tokens inserted using this function will automatically have a created_at value, an expires_at value (5 minutes after generation), and will default into an unused state at time of creation. 
@@ -92,9 +92,9 @@ $$ LANGUAGE plpgsql;
 ```
 Function called by the API when a user attempts to verify a password reset token. It take a hashed token and checks if the token has been used and is not expired. If the token passes verification, the user will be allowed to continue the password reset workflow.
 
-### insert_email_verification_token(integer, text)
+### insert_email_verification_token(uuid, text)
 ```sql
-CREATE FUNCTION insert_email_verification_token(p_user_id integer, p_token_hash text)
+CREATE FUNCTION insert_email_verification_token(p_user_id uuid, p_token_hash text)
     RETURNS BOOLEAN 
     SECURITY DEFINER
     SET search_path = public
@@ -111,7 +111,7 @@ AS $$
     END;
 $$;
 
-GRANT EXECUTE ON FUNCTION insert_email_verification_token(integer, text) TO playground_user_1;
+GRANT EXECUTE ON FUNCTION insert_email_verification_token(uuid, text) TO playground_user_1;
 ```
 Function called by the API when pre-authenticated user initializes an email verification workflow. Takes the user_id and generated password token hash, and stores it in the [email_verifications](email_verifications.md) table. Returns true if insert is successful, else false. Tokens inserted using this function will automatically have a created_at value, an expires_at value (5 minutes after generation), and will default into an unused state at time of creation.
 
@@ -139,7 +139,7 @@ Function called by the API when a user attempts to verify an email verification 
 CREATE FUNCTION get_user_for_reset_token(p_token_hash text)
     RETURNS TABLE
         (
-            user_id    integer,
+            user_id    uuid,
             expires_at timestamptz,
             used_at    timestamptz
         ) SECURITY DEFINER
@@ -167,7 +167,7 @@ CREATE FUNCTION update_user_password(p_token_hash text, u_new_password text)
     LANGUAGE plpgsql
 AS $$
     DECLARE
-        v_user_id integer;
+        v_user_id uuid;
     BEGIN
         SELECT user_id INTO v_user_id
         FROM password_resets
@@ -198,9 +198,9 @@ Function used to finalize the password reset workflow of a pre-authenticated use
 
 
 ## Post-Authentication Functions
-### get_accounts_for_user(integer)
+### get_accounts_for_user(uuid)
 ```sql
-CREATE FUNCTION get_accounts_for_user(p_user_id integer)
+CREATE FUNCTION get_accounts_for_user(p_user_id uuid)
     RETURNS TABLE(account_id integer, account_name text, account_type text, role_name text)
     SECURITY DEFINER
     SET search_path = public
@@ -213,7 +213,7 @@ AS $$
     WHERE am.user_id = p_user_id;
 $$;
 
-GRANT EXECUTE ON FUNCTION get_accounts_for_user(integer) TO playground_user_1;
+GRANT EXECUTE ON FUNCTION get_accounts_for_user(uuid) TO playground_user_1;
 ```
 
 Function used after a successful login to display all accounts a user is a member of using the user's user_id. The application is multitenant enabled, meaning a user can be a part of more than one account. Because of this, if the user is a member of more than one account, they will need to select which account they will be operating within to complete the login process. The API calls `get_accounts_for_user(integer)` during the login processes and stores the selected account_id as a part of the JWT for the session.
